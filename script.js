@@ -64,11 +64,13 @@ const createPeerConnection = async () => {
 const createPeerConnection = () =>
   new Promise(async (resolve, reject) => {
     try {
-      //RTCPeerConnection is the thing that creates the connection
-      //we can pass a config object, and that config object can contain stun servers
-      //which will fetch us ICE candidates
+      // RTCPeerConnection is the thing that creates the connection
+      // we can pass a config object, and that config object can contain stun servers
+      // which will fetch us ICE candidates
+      // 2-1)
       peerConnection = await new RTCPeerConnection(peerConfiguration);
 
+      // 2-2) Adds each track from the stream to the peer connection
       localStream.getTracks().forEach((track) => {
         peerConnection.addTrack(track, localStream);
       });
@@ -87,16 +89,20 @@ const createPeerConnection = () =>
 //when a client initiates a call
 const call = async (e) => {
   try {
-    // get stream from GUM
+    // 1) get stream from GUM
     await fetchUserMedia();
 
-    // create peer connection and get ICE candidate
+    // 2) create peer connection and get ICE candidate
     await createPeerConnection();
 
-    // create offer (generate SDP)
-    const offer = await peerConnection.createOffer();
+    // 3) create offer (generate SDP)
+    const offerSessionDescription = await peerConnection.createOffer();
     console.log("****** offer/ SDP ******");
-    console.log(offer);
+    console.log(offerSessionDescription);
+
+    // 4) Changes the local description associated with the connection
+    // setLocalDescription will trigger icecandidate event
+    peerConnection.setLocalDescription(offerSessionDescription);
   } catch (err) {
     console.log(err);
   }
