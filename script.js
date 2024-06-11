@@ -81,6 +81,11 @@ const createPeerConnection = (offerObj) =>
         // console.log(peerConnection.signalingState) //should be have-remote-offer, because client2 has setRemoteDesc on the offer
       }
 
+      peerConnection.addEventListener("signalingstatechange", (event) => {
+        console.log(event);
+        console.log(peerConnection.signalingState);
+      });
+
       resolve();
     } catch (err) {
       console.log(err);
