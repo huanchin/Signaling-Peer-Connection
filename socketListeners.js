@@ -20,3 +20,13 @@ socket.on("availableOffers", (offers) => {
 socket.on("newOfferAwaiting", (offers) => {
   createOfferEls(offers);
 });
+
+socket.on("answerResponse", (offerObj) => {
+  console.log(offerObj);
+  addAnswer(offerObj);
+});
+
+socket.on("receivedIceCandidateFromServer", (iceCandidate) => {
+  addNewIceCandidate(iceCandidate);
+  console.log(iceCandidate);
+});

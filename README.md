@@ -31,7 +31,7 @@
     Signaling server has been waiting...
 19. CLIENT2 emit answer (RTCSessionDesc - sdp/type) up to signaling server
 20. (ASYNC) CLIENT2 will listen for tracks/ICE from remote. - and is done. - waiting on ICE candidates - waiting on tracks
-21. signaling server listens for answer, emits CLIENT1 answer (RTCSessionDesc - sdp/type)
+21. signaling server listens for answer, emits CLIENT2 Ice candidate ,emits CLIENT1 answer (RTCSessionDesc - sdp/type)
 22. CLIENT1 takes the answer and hands it to pc.setRemoteDesc
 23. CLIENT1 waits for ICE candidates and tracks
 

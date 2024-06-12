@@ -51,6 +51,9 @@ const createPeerConnection = (offerObj) =>
       // 3) peerConnection needs STUN servers, we will need ICE candidates later
       peerConnection = await new RTCPeerConnection(peerConfiguration);
 
+      remoteStream = new MediaStream();
+      remoteVideoEl.srcObject = remoteStream;
+
       // 4) CLIENT1 add localstream tracks to peerConnection
       // 14) CLIENT2 adds localstream tracks to peerconnection
       localStream.getTracks().forEach((track) => {
@@ -70,6 +73,15 @@ const createPeerConnection = (offerObj) =>
             didIOffer,
           });
         }
+      });
+
+      peerConnection.addEventListener("track", (e) => {
+        console.log("Got a track from the other peer!! How excting");
+        console.log(e);
+        e.streams[0].getTracks().forEach((track) => {
+          remoteStream.addTrack(track, remoteStream);
+          console.log("Here's an exciting moment... fingers cross");
+        });
       });
 
       // 17) Because CLIENT2 has the offer, CLIENT2 can hand the offer to pc.setRemoteDescription
@@ -108,16 +120,28 @@ const answerOffer = async (offerObj) => {
   console.log(offerObj);
   console.log(answer);
   // console.log(peerConnection.signalingState) //should be have-local-pranswer because CLIENT2 has set its local desc to it's answer (but it won't be)
-  //add the answer to the offerObj so the server knows which offer this is related to
+  // add the answer to the offerObj so the server knows which offer this is related to
   offerObj.answer = answer;
+
+  // 19) CLIENT2 emit answer (RTCSessionDesc - sdp/type) up to signaling server
   //emit the answer to the signaling server, so it can emit to CLIENT1
   //expect a response from the server with the already existing ICE candidates
   const offerIceCandidates = await socket.emitWithAck("newAnswer", offerObj);
+
+  // 21) (ASYNC) CLIENT2 will listen for tracks/ICE from remote. - and is done. - waiting on ICE candidates - waiting on tracks
   offerIceCandidates.forEach((c) => {
     peerConnection.addIceCandidate(c);
     console.log("======Added Ice Candidate======");
   });
   console.log(offerIceCandidates);
+};
+
+const addAnswer = async (offerObj) => {
+  //addAnswer is called in socketListeners when an answerResponse is emitted.
+  //at this point, the offer and answer have been exchanged!
+  //now CLIENT1 needs to set the remote
+  await peerConnection.setRemoteDescription(offerObj.answer);
+  // console.log(peerConnection.signalingState)
 };
 
 //when a client initiates a call
@@ -144,6 +168,11 @@ const call = async (e) => {
   } catch (err) {
     console.log(err);
   }
+};
+
+const addNewIceCandidate = (iceCandidate) => {
+  peerConnection.addIceCandidate(iceCandidate);
+  console.log("======Added Ice Candidate======");
 };
 
 document.querySelector("#call").addEventListener("click", call);
